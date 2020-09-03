@@ -24,10 +24,19 @@ class cell{
 }
 class point{
     int x, y;
+    int count;
     point(int xx, int yy){
         x = xx;
         y = yy;
+        count = 3;
     }
+    void plus_one(){
+        count++;
+    }
+    int get_count(){
+        return count;
+    }
+
 }
 public class Main {
     static ArrayList<cell> alive;
@@ -35,11 +44,11 @@ public class Main {
     static int live = 3;
     static int live2 = 2;
     static int max = 15; 
-    static ArrayList<point> over3;
+    static HashMap<String, point> over3;
     static HashMap<String, cell> hm;
     static void mapping(){
         area = new int[max][max];
-        over3 = new ArrayList<point>();
+        over3 = new HashMap<String, point>();
         if(!alive.isEmpty())
         for (cell cell : alive) {
             for(int i = cell.y-1; i < cell.y+2; ++i)
@@ -47,9 +56,16 @@ public class Main {
                     if(i >= 0 && i < max && j >= 0 && j < max){
                         if(i == cell.y && j == cell.x) continue;
                             area[i][j]++;
-                            if(area[i][j] == 3)
-                                if(hm.get(j+","+i) == null)
-                                    over3.add(new point(j, i));
+                            if(area[i][j] >= 3)
+                                if(hm.get(j+","+i) == null){
+                                    String id = j+","+i;
+                                    if(over3.get(id) == null){
+                                        over3.put(id, new point(j, i));
+                                    }else 
+                                        over3.get(id).plus_one();
+                                    
+                                }
+                                    
                     }
                 }
         }
@@ -68,14 +84,14 @@ public class Main {
  //       System.out.println("");
     }
     static void spawn(){
-        if(!over3.isEmpty())
-            for(point p : over3){
-                if(hm.get(p.x+","+p.y) == null){
-                    cell temp = new cell(p.x, p.y);
-                    alive.add(temp);
-                    hm.put(temp.id, temp);
-                }
+        over3.entrySet().stream().filter(x -> x.getValue().get_count() == 3).forEach(x ->{
+            if(hm.get(x.getValue().x+","+x.getValue().y) == null){
+                cell temp = new cell(x.getValue().x, x.getValue().y);
+                alive.add(temp);
+                hm.put(temp.id, temp);
             }
+
+        });
     }
     static void print_area(int num){
         for(int i = 0; i <num; ++i){
@@ -121,12 +137,12 @@ public class Main {
         String seed = bf.readLine();
         alive = new ArrayList<cell>();
         hm = new HashMap<String, cell>();
-     //   appoint_inti(seed);
+ //       appoint_inti(seed);
         intiSeed(Integer.parseInt(seed));
         for(int i = 0; i < 100; ++i){
             display();
             mapping();
-     //       print_area(max);
+            print_area(max);
             check_alive();
             spawn();
             TimeUnit.MILLISECONDS.sleep(500);
